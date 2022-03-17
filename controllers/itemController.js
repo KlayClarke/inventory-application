@@ -2,6 +2,12 @@ let async = require("async");
 let Item = require("../models/item");
 const { body, validationResult } = require("express-validator");
 
+// display site index
+
+exports.index = function (req, res, next) {
+  res.send("NOT IMPLEMENTED: INDEX");
+};
+
 // display all items
 exports.item_list = function (req, res, next) {
   res.send("NOT IMPLEMENTED: ITEM LIST");
@@ -23,7 +29,7 @@ exports.item_create_post = function (req, res, next) {
 };
 
 // display item delete form
-exports.item_delete_form = function (req, res, next) {
+exports.item_delete_get = function (req, res, next) {
   res.send("NOT IMPLEMENTED: ITEM DELETE GET");
 };
 
