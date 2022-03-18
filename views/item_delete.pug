@@ -1,0 +1,16 @@
+extends layout 
+block content 
+  h1 #{title}: #{item.name}
+  if iteminstances.length
+    p #[strong Delete the following iteminstances before attempting to delete this book.] 
+    div(style='margin-left: 20px;margin-top:20px;')
+      ul
+        each iteminstance in iteminstances 
+          li
+            a(href=iteminstance.url) #{iteminstance._id}
+  else 
+    p Do you really want to delete this book?
+    form(method='POST' action='')
+      .form-group
+        input#itemid(type='hidden' name='itemid' required='true' value=item._id)
+      button(type='submit') Delete 
