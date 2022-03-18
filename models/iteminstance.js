@@ -12,4 +12,4 @@ ItemInstanceSchema.virtual("url").get(function () {
 });
 
 // export iteminstance model
-module.export = mongoose.model("ItemInstance", ItemInstanceSchema);
+module.exports = mongoose.model("ItemInstance", ItemInstanceSchema);

@@ -29,7 +29,7 @@ var iteminstances = [];
 var categories = [];
 
 function categoryCreate(name, cb) {
-  var category = new Category({ name });
+  var category = new Category({ name: name });
 
   category.save(function (err) {
     if (err) {
@@ -43,7 +43,12 @@ function categoryCreate(name, cb) {
 }
 
 function itemCreate(name, description, category, price, cb) {
-  var item = new Item({ name, description, category, price });
+  var item = new Item({
+    name: name,
+    description: description,
+    category: category,
+    price: price,
+  });
 
   item.save(function (err) {
     if (err) {
@@ -56,8 +61,8 @@ function itemCreate(name, description, category, price, cb) {
   });
 }
 
-function itemInstanceCreate(item, status, cb) {
-  var iteminstance = new ItemInstance({ item, status });
+function itemInstanceCreate(item, cb) {
+  var iteminstance = new ItemInstance({ item: item });
 
   iteminstance.save(function (err) {
     if (err) {
