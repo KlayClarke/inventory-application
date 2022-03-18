@@ -130,10 +130,80 @@ exports.iteminstance_delete_post = function (req, res, next) {
 
 // display iteminstance update form
 exports.iteminstance_update_get = function (req, res, next) {
-  res.send("NOT IMPLEMENTED: ITEMINSTANCE UPDATE GET");
+  // get iteminstance and item
+  async.parallel(
+    {
+      items: function (callback) {
+        Item.find({}).exec(callback);
+      },
+      iteminstance: function (callback) {
+        ItemInstance.findById(req.params.id).populate("item").exec(callback);
+      },
+    },
+    function (err, results) {
+      if (err) return next(err);
+      if (results.iteminstance == null) {
+        // no results returned - iteminstance not found
+        let err = new Error("Item Instance not found");
+        err.status = 404;
+        return next(err);
+      }
+      // success
+      res.render("iteminstance_form", {
+        title: "Update Item Instance",
+        item_list: results.items,
+        iteminstance: results.iteminstance,
+      });
+    }
+  );
 };
 
 // handle iteminstance update
-exports.iteminstance_update_post = function (req, res, next) {
-  res.send("NOT IMPLEMENTED: ITEMINSTANCE UPDATE POST");
-};
+exports.iteminstance_update_post = [
+  // validate and sanitize field
+  body("item", "Item must be specified").trim().isLength({ min: 1 }).escape(),
+  // process request after validation and sanitization
+  (req, res, next) => {
+    // extract validation errors from request
+    const errors = validationResult(req);
+    // create a iteminstance object with escaped/trimmed data and old id
+    let iteminstance = new ItemInstance({
+      item: req.body.item,
+      _id: req.params.id, // REQUIRED: OTHERWISE, NEW ID WOULD BE ASSIGNED TO UPDATED OBJECT
+    });
+    if (!errors.isEmpty()) {
+      // there are errors
+      // get item for form
+      async.parallel(
+        {
+          iteminstance: function (callback) {
+            ItemInstance.findById(req.params.id)
+              .populate("item")
+              .exec(callback);
+          },
+        },
+        function (err, results) {
+          if (err) return next(err);
+          // success - render form
+          res.render("iteminstance_form", {
+            title: "Update Item Instance",
+            item: results.iteminstance.item,
+          });
+        }
+      );
+      return;
+    } else {
+      // data from form is valid - update record
+      ItemInstance.findByIdAndUpdate(
+        req.params.id,
+        iteminstance,
+        {},
+        function (err, theiteminstance) {
+          if (err) return next(err);
+          // successful - redirect to iteminstance detail page
+          res.redirect(theiteminstance.url);
+        }
+      );
+    }
+  },
+];
