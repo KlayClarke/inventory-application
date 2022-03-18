@@ -1,0 +1,10 @@
+extends layout 
+
+block content 
+  h1= title
+  ul 
+    each iteminstance in iteminstance_list 
+      li 
+        a(href=iteminstance.url) #{iteminstance.item}
+    else 
+      li There are no iteminstances currently in the database 

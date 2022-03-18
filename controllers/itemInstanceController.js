@@ -4,12 +4,34 @@ const { body, validationResult } = require("express-validator");
 
 // display all iteminstances
 exports.iteminstance_list = function (req, res, next) {
-  res.send("NOT IMPLEMENTED: ITEMINSTANCE LIST");
+  ItemInstance.find()
+    .populate("item")
+    .exec(function (err, list_iteminstances) {
+      if (err) return next(err);
+      res.render("iteminstance_list", {
+        title: "Item Instance List",
+        iteminstance_list: list_iteminstances,
+      });
+    });
 };
 
 // display iteminstance detail page
 exports.iteminstance_detail = function (req, res, next) {
-  res.send("NOT IMPLEMENTED: ITEMINSTANCE DETAIL");
+  ItemInstance.findById(req.params.id)
+    .populate("item")
+    .exec(function (err, iteminstance) {
+      if (err) return next(err);
+      if (iteminstance == null) {
+        // iteminstance not found
+        let err = new Error();
+        err.status = 404;
+        return next(err);
+      }
+      res.render("iteminstance_detail", {
+        title: "Item Instance Detail",
+        iteminstance,
+      });
+    });
 };
 
 // display iteminstance create form

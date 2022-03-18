@@ -1,0 +1,11 @@
+extends layout 
+
+block content 
+  h1 #{iteminstance.item.name}
+  ul 
+    li #{iteminstance.item._id}
+    li $#{iteminstance.item.price}
+  p 
+    a(href=iteminstance.url+'/update') Update Item Instance 
+  p 
+    a(href=iteminstance.url+'/delete') Delete Item Instance
