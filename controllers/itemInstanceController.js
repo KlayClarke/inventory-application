@@ -40,7 +40,7 @@ exports.iteminstance_create_get = function (req, res, next) {
   // find all items, execute function that returns items object
   Item.find({}).exec(function (err, items) {
     if (err) return next(err);
-    // successful so render form
+    // successful, render form
     res.render("iteminstance_form", {
       title: "Create Item Instance",
       item_list: items,
@@ -66,7 +66,7 @@ exports.iteminstance_create_post = [
       // find all items
       Item.find({}).exec(function (err, items) {
         if (err) return next(err);
-        // success so render
+        // success, render
         res.render("iteminstance_form", {
           title: "Create Item Instance",
           item_list: items,
@@ -87,12 +87,45 @@ exports.iteminstance_create_post = [
 
 // display iteminstance delete form
 exports.iteminstance_delete_get = function (req, res, next) {
-  res.send("NOT IMPLEMENTED: ITEMINSTANCE DELETE GET");
+  async.parallel(
+    {
+      // find item instance
+      iteminstance: function (callback) {
+        ItemInstance.findById(req.params.id).populate("item").exec(callback);
+      },
+    },
+    function (err, results) {
+      if (err) return next(err);
+      // successful, render
+      res.render("iteminstance_delete", {
+        title: "Delete Item Instance",
+        iteminstance: results.iteminstance,
+      });
+    }
+  );
 };
 
 // handle iteminstance delete
 exports.iteminstance_delete_post = function (req, res, next) {
-  res.send("NOT IMPLEMENTED: ITEMINSTANCE DELETE POST");
+  async.parallel(
+    {
+      iteminstance: function (callback) {
+        ItemInstance.findById(req.body.iteminstanceid).exec(callback);
+      },
+    },
+    function (err, results) {
+      if (err) return next(err);
+      // success, delete object and
+      ItemInstance.findByIdAndDelete(
+        req.body.iteminstanceid,
+        function deleteItemInstance(err) {
+          if (err) return next(err);
+          // success, go to list of item instances
+          res.redirect("/inventory/iteminstances");
+        }
+      );
+    }
+  );
 };
 
 // display iteminstance update form

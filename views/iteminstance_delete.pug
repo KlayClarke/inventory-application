@@ -1,0 +1,8 @@
+extends layout 
+block content 
+  h1 #{title}: #{iteminstance.item.name} #{iteminstance._id}
+  p Do you really want to delete this iteminstance?
+  form(method='POST' action='')
+    .form-group 
+      input#iteminstanceid(type='hidden' name='iteminstanceid' required='true' value=iteminstance._id)
+    button(type='submit') Delete
