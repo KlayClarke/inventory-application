@@ -1,5 +1,4 @@
 extends layout 
-
 block content 
   h1 #{category.name}
   ul 
@@ -8,3 +7,7 @@ block content
         a(href=item.url) #{item.name}
     else 
       li There are no items currently in this category 
+  p 
+    a(href=category.url+'/update') Update Category 
+  p 
+    a(href=category.url+'/delete') Delete Category   
