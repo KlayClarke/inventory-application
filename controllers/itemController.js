@@ -224,10 +224,124 @@ exports.item_delete_post = function (req, res, next) {
 
 // display item update form
 exports.item_update_get = function (req, res, next) {
-  res.send("NOT IMPLEMENTED: ITEM UPDATE GET");
+  // get item and categories
+  async.parallel(
+    {
+      item: function (callback) {
+        Item.findById(req.params.id).populate("category").exec(callback);
+      },
+      categories: function (callback) {
+        Category.find(callback);
+      },
+    },
+    function (err, results) {
+      if (err) return next(err);
+      if (results.item == null) {
+        // item not found
+        let err = new Error("Item not found");
+        err.status = 404;
+        return next(err);
+      }
+      // success
+      // mark selected categories as checked
+      for (
+        let all_c_iter = 0;
+        all_c_iter < results.categories.length;
+        all_c_iter++
+      ) {
+        for (
+          let item_c_iter = 0;
+          item_c_iter < results.item.category.length;
+          item_c_iter++
+        ) {
+          if (
+            results.categories[all_c_iter]._id.toString() ===
+            results.item.category[item_c_iter]._id.toString()
+          ) {
+            results.categories[all_c_iter].checked = "true";
+          }
+        }
+      }
+      // render item form
+      res.render("item_form", {
+        title: "Update Item",
+        item: results.item,
+        categories: results.categories,
+      });
+    }
+  );
 };
 
 // handle item update
-exports.item_update_post = function (req, res, next) {
-  res.send("NOT IMPLEMENTED: ITEM UPDATE POST");
-};
+exports.item_update_post = [
+  // convert category to array
+  (req, res, next) => {
+    if (!req.body.category instanceof Array) {
+      if (typeof req.body.category === "undefined") req.body.category = [];
+      else req.body.category = new Array(req.body.category);
+    }
+    next();
+  },
+  // validate and sanitize fields
+  body("name", "Name must be specified").trim().isLength({ min: 1 }).escape(),
+  body("description", "Description must be specified")
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  body("category.*").escape(), // use wildcard * tag to individually validate each of the genre array entries
+  body("price", "Price must be specified")
+    .trim()
+    .isLength({ min: 0 })
+    .toFloat()
+    .escape(),
+  // process request after validation and sanitization
+  (req, res, next) => {
+    // extract validation errors from request
+    const errors = validationResult(req);
+    // create a item object with escaped / trimmed data and old id
+    let item = new Item({
+      name: req.body.name,
+      description: req.body.description,
+      category: req.body.category,
+      price: req.body.price,
+      _id: req.params.id, // REQUIRED TO ASSIGN UPDATED OBJECT SAME ID AS PREVIOUS ITEM OBJECT
+    });
+    if (!errors.isEmpty()) {
+      // there are errors
+      // get item and categories
+      async.parallel(
+        {
+          item: function (callback) {
+            Item.findById(req.params.id).populate("category").exec(callback);
+          },
+          categories: function (callback) {
+            Category.find(callback);
+          },
+        },
+        function (err, results) {
+          if (err) return next(err);
+          // mark selected categories as checked
+          for (let i = 0; i < results.categories.length; i++) {
+            if (item.category.indexOf(results.categories[i]._id) > -1) {
+              // set category to checked
+              results.categories[i].checked = "true";
+            }
+          }
+          // render item form
+          res.render("item_form", {
+            title: "Update Item",
+            item: results.item,
+            categories: results.categories,
+          });
+        }
+      );
+    } else {
+      // data from form is valid - update the record
+      Item.findByIdAndUpdate(req.params.id, item, {}, function (err, theitem) {
+        if (err) return next(err);
+        // success - redirect to item detail page
+        res.redirect(theitem.url);
+      });
+    }
+  },
+];
